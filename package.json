@@ -1,0 +1,19 @@
+{
+  "name": "social_media_app",
+  "version": "1.0.0",
+  "description": "backend for social media app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/otsur/social_media_app.git"
+  },
+  "author": "otsur",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/otsur/social_media_app/issues"
+  },
+  "homepage": "https://github.com/otsur/social_media_app#readme"
+}
