@@ -12,6 +12,9 @@ import commentRoutes from "./routes/comment.routes.js";
 
 import uploadRoutes from "./routes/upload.routes.js";
 
+import chatRoutes from "./routes/chat.routes.js";
+import messageRoutes from "./routes/message.routes.js";
+
 const app = express()
 
 app.use(cors({
@@ -30,5 +33,8 @@ app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/comments", commentRoutes);
 app.use("/api/v1/upload", uploadRoutes);
+app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/chats", chatRoutes);
+app.use("/api/v1/messages", messageRoutes);
 
 export { app }

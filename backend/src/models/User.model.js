@@ -26,6 +26,27 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    followers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      }
+    ],
+    following: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      }
+    ],
+    profilePic: {
+        type: String,
+        default: "https://avatar.iran.liara.run/public",
+      },
+
+    bio: {
+      type: String,
+      default: "",
+    },
   },
   { timestamps: true }
 );

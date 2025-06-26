@@ -26,10 +26,19 @@ export const createPost = asyncHandler(async (req, res) => {
 
 // ========== GET ALL POSTS ==========
 export const getAllPosts = asyncHandler(async (req, res) => {
+  
+  const limit = parseInt(req.query.limit) || 5;
+  const skip = parseInt(req.query.skip) || 0;
+  
   const posts = await Post.find()
     .populate("author", "username email profilePic")
-    .populate("comments")
-    .sort({ createdAt: -1 });
+    .populate({
+      path: "comments",
+      populate: { path: "author", select: "username profilePic"},
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
 
   return res.status(200).json(new ApiResponse(200, posts));
 });
