@@ -1,11 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { socket } from "../utils/socket";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import "./Chat.css";
+
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
+console.log(`baseURL ${baseURL}`);
 
 const Chat = () => {
+  const navigate = useNavigate();
+
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage] = useState("");
@@ -13,9 +19,13 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const [user, setUser] = useState(null);
   const [onlineUsersInfo, setOnlineUsersInfo] = useState([]);
-  
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const messagesEndRef = useRef(null);
 
   const token = localStorage.getItem("token");
+
+   const firstLoadRef = useRef(true);
+   const restoredFromLocal = useRef(false);
 
   useEffect(() => {
     // Get logged-in user
@@ -27,19 +37,28 @@ const Chat = () => {
       socket.emit("addUser", res.data.data._id);
       // console.log("🔌 Emitting addUser with ID:", res.data.data._id);
 
+const stored = localStorage.getItem("selectedUser");
+if (stored) {
+  // setSelectedUser(JSON.parse(stored));
+  const parsedUser = JSON.parse(stored);
+  setSelectedUser(parsedUser);
+
+  const storedMsgs = localStorage.getItem(`chat_${parsedUser._id}`);
+  if (storedMsgs) {
+    setMessages(JSON.parse(storedMsgs));
+  }
+   restoredFromLocal.current = true;
+}
+
+
+
+
     };
     fetchUser();
   }, []);
 
  useEffect(() => {
-  socket.on("getUsers", (userIds) => {
-    //  console.log("🌐 Online users received from server:", userIds);
-    const filtered = userIds.filter((id) => id !== user?._id);
-    setOnlineUsers(filtered);
-    fetchUserDetails(filtered);
-  });
  
-
 // --------------
 const fetchUserDetails = async (userIds) => {
   try {
@@ -60,6 +79,15 @@ const fetchUserDetails = async (userIds) => {
 };
 // --------------
 
+
+ socket.on("getUsers", (userIds) => {
+    //  console.log("🌐 Online users received from server:", userIds);
+    if(!user) return;
+    const filtered = userIds.filter((id) => id !== user?._id);
+    setOnlineUsers(filtered);
+    fetchUserDetails(filtered);
+  });
+
   socket.on("receiveMessage", (data) => {
     if (data.senderId === selectedUser?._id) {
       setMessages((prev) => [...prev, { fromSelf: false, message: data.message }]);
@@ -73,13 +101,42 @@ const fetchUserDetails = async (userIds) => {
 }, [selectedUser]);
 
 
+
+//-------------------
+
+useEffect(() => {
+  if (messages.length > 0 && selectedUser) {
+    localStorage.setItem(`chat_${selectedUser._id}`, JSON.stringify(messages));
+  }
+}, [messages, selectedUser]);
+
+
   //------------
   useEffect(() => {
   const fetchMessages = async () => {
     if (!selectedUser || !user) return;
 
+  const isSelectedUserOnline = onlineUsersInfo.some(
+      (u) => u._id === selectedUser._id
+    );
+
+
+if (!isSelectedUserOnline && !restoredFromLocal.current) {
+      return;
+    }
+
     try {
-      const token = localStorage.getItem("token");
+     
+     
+      if (firstLoadRef.current && messages.length > 0) {
+        firstLoadRef.current = false;
+        restoredFromLocal.current = false;
+        setLoadingMessages(false);
+        return;
+      }
+
+       setLoadingMessages(true);
+       const token = localStorage.getItem("token");
 
       // Create or fetch chat
       const chatRes = await axios.post(`${baseURL}/api/v1/chats`, {
@@ -100,17 +157,32 @@ const fetchUserDetails = async (userIds) => {
       const formattedMessages = msgs.map((msg) => ({
         fromSelf: msg.sender === user._id,
         message: msg.content,
+         timestamp: msg.createdAt, 
       }));
 
       setMessages(formattedMessages);
+      setLoadingMessages(false);
+       restoredFromLocal.current = true;
     } catch (err) {
       console.error("Error fetching messages:", err);
+     
+    }finally{
+      setLoadingMessages(false);
+      firstLoadRef.current = false;
     }
   };
-
+console.log("Selected user:", selectedUser);
   fetchMessages();
-}, [selectedUser]);
+}, [selectedUser, user]);
 
+
+// ----------------------------auto scroll to latest
+useEffect(() => {
+  if (messagesEndRef.current) {
+    messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }
+}, [messages]);
+// ------------------------------
 
   const handleSend = async () => {
   if (!input.trim() || !selectedUser || !user) return;
@@ -141,7 +213,15 @@ const fetchUserDetails = async (userIds) => {
       message: input,
     });
 
-    setMessages((prev) => [...prev, { fromSelf: true, message: input }]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        fromSelf: true,
+        message: input,
+        timestamp: new Date().toISOString(), // Add this
+      },
+    ]);
+
     setInput("");
   } catch (err) {
     console.error("Message send error:", err);
@@ -149,89 +229,136 @@ const fetchUserDetails = async (userIds) => {
 };
 
 
-
   
  return (
-  <div style={{ display: "flex", height: "100vh", fontFamily: "sans-serif" }}>
+
+<div className="char-container">
+{/* ------------ */}
+<button
+  onClick={() => navigate("/")}
+  style={{
+    margin: "10px 20px",
+    padding: "5px 10px",
+    backgroundColor: "#A9A9A9",
+    color: "white",
+    border: "none",
+    borderRadius: "30px",
+    cursor: "pointer",
+    fontWeight: "bold",
+  }}
+>
+   Back
+</button>
+
+{/* ----------- */}
+
+
+  <div style={{ 
+    display: "flex",
+    height: "100vh",
+    fontFamily: "sans-serif",
+    backgroundColor: "#0000"
+   }}>
+
     {/* Left Panel - User List */}
-    <div style={{ width: "30%", borderRight: "1px solid #ccc", padding: "10px" }}>
-      <h3>Online Users</h3>
-      {onlineUsersInfo.length === 0 ? (
-        <p>No users online</p>
-      ) : (
-        onlineUsersInfo.map((userItem) => (
-          <div
-            key={userItem._id}
-            onClick={() => setSelectedUser(userItem)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              padding: "10px",
-              cursor: "pointer",
-              backgroundColor: selectedUser?._id === userItem._id ? "#e0f7fa" : "transparent",
-              borderRadius: "5px",
-            }}
-          >
-            <img
-              src={userItem.profilePic || "https://via.placeholder.com/40"}
-              alt={userItem.username}
-              style={{ width: "40px", height: "40px", borderRadius: "50%" }}
-            />
-            <span>{userItem.username}</span>
-          </div>
-        ))
-      )}
-    </div>
+    <div className="chat-sidebar">
 
-    {/* Right Panel - Chat */}
-    <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", padding: "20px" }}>
-      <h3>
-        {selectedUser ? `Chatting with ${selectedUser.username}` : "Select a user to start chat"}
-      </h3>
-
+  <h3 style={{ marginBottom: "15px" }}>Online Users</h3>
+  {onlineUsersInfo.length === 0 ? (
+    <p>No users online</p>
+  ) : (
+    onlineUsersInfo.map((userItem) => (
       <div
-        style={{
-          flexGrow: 1,
-          border: "1px solid #ccc",
-          padding: "10px",
-          overflowY: "auto",
-          backgroundColor: "#f9f9f9",
-          borderRadius: "8px",
-          marginBottom: "10px",
+        key={userItem._id}
+        className={`chat-user ${selectedUser?._id === userItem._id ? "selected" : ""}`}
+        onClick={() => {
+          setSelectedUser(userItem);
+          localStorage.setItem("selectedUser", JSON.stringify(userItem));
         }}
       >
-        {messages.map((msg, idx) => (
+        <img
+          src={userItem.profilePic || "https://via.placeholder.com/40"}
+          alt={userItem.username}
+          style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            marginRight: "10px"
+          }}
+        />
+        <span style={{ fontWeight: "500" }}>{userItem.username}</span>
+      </div>
+    ))
+  )}
+</div>
+
+    {/* Right Panel - Chat */}
+    <div className="chat-main">
+
+  <div style={{
+    fontWeight: "600",
+    fontSize: "18px",
+    marginBottom: "10px",
+    color: "#ffff"
+  }}>
+    {selectedUser ? `Chatting with ${selectedUser.username}` : "Select a user to start chatting"}
+  </div>
+
+  {/* Chat Messages */}
+  <div className="chat-box">
+
+    {loadingMessages ? (
+      <p>Loading messages...</p>
+    ) : (
+      messages.map((msg, idx) => (
+        <div
+          key={idx}
+          style={{
+            textAlign: msg.fromSelf ? "right" : "left",
+            marginBottom: "8px",
+          }}
+        >
           <div
             key={idx}
-            style={{
-              textAlign: msg.fromSelf ? "right" : "left",
-              marginBottom: "8px",
-              padding: "8px",
-              backgroundColor: msg.fromSelf ? "#dcf8c6" : "#fff",
-              display: "inline-block",
-              borderRadius: "5px",
-              maxWidth: "60%",
-            }}
+            className={`chat-message ${msg.fromSelf ? "sent" : "received"}`}
           >
             {msg.message}
           </div>
-        ))}
-      </div>
+          <div style={{ fontSize: "11px", color: "gray", marginTop: "2px" }}>
+            {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+          </div>
+        </div>
 
-      <div style={{ display: "flex", gap: "10px" }}>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type a message..."
-          style={{ flexGrow: 1, padding: "8px", fontSize: "16px" }}
-        />
-        <button onClick={handleSend} style={{ padding: "8px 16px" }}>
-          Send
-        </button>
-      </div>
-    </div>
+      ))
+    )}
+     <div ref={messagesEndRef}></div>
+  </div>
+
+  {/* Input Area */}
+  <div className="chat-input">
+    <input
+      type="text"
+      value={input}
+      onChange={(e) => setInput(e.target.value)}
+      placeholder="Type a message..."
+      style={{
+        flexGrow: 1,
+        padding: "12px 16px",
+        fontSize: "16px",
+        borderRadius: "20px",
+        border: "1px solid #ccc",
+        outline: "none"
+      }}
+    />
+    <button className="sendBtn"
+      onClick={handleSend}
+    >
+      send
+    </button>
+  </div>
+</div>
+
+  </div>
   </div>
 );
 }

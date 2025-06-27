@@ -15,14 +15,14 @@ export const accessChat = asyncHandler(async (req, res) => {
   let chat = await Chat.findOne({
     isGroupChat: false,
     $and: [
-      { users: { $elemMatch: { $eq: req.user._id } } },
-      { users: { $elemMatch: { $eq: userId } } },
+      { members: { $elemMatch: { $eq: req.user._id } } },
+      { members: { $elemMatch: { $eq: userId } } },
     ],
   }).populate("members", "-password");
 
   if (!chat) {
     chat = await Chat.create({
-      users: [req.user._id, userId],
+      members: [req.user._id, userId],
     });
     await chat.populate("members", "-password");
   }
@@ -32,7 +32,7 @@ export const accessChat = asyncHandler(async (req, res) => {
 
 // Get all chats for logged-in user
 export const fetchChats = asyncHandler(async (req, res) => {
-  const chats = await Chat.find({ users: { $elemMatch: { $eq: req.user._id } }, })
+  const chats = await Chat.find({ members: { $elemMatch: { $eq: req.user._id } }, })
     .populate("members", "-password")
     .populate({
       path: "latestMessage",
