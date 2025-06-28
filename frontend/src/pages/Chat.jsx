@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { socket } from "../utils/socket";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./Chat.css";
+import "../styles/Chat.css";
 
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -28,6 +28,11 @@ const Chat = () => {
    const restoredFromLocal = useRef(false);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/auth");
+      }
+
     // Get logged-in user
     const fetchUser = async () => {
       const res = await axios.get(`${baseURL}/api/v1/users/me`, {
@@ -277,7 +282,7 @@ useEffect(() => {
         }}
       >
         <img
-          src={userItem.profilePic || "https://via.placeholder.com/40"}
+          src={userItem.profilePic || "/default-profile.png"}
           alt={userItem.username}
           style={{
             width: "40px",

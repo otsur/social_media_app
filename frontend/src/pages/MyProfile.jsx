@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import "../styles/Home.css";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -95,13 +96,11 @@ const MyProfile = () => {
   if (!user) return <p>Loading profile...</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>My Profile</h2>
-
-
+    <div className="home-container">
+      <h2 className="home-heading">My Profile</h2>
 
       {editing ? (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="comment-form">
           <input
             type="text"
             name="username"
@@ -138,10 +137,11 @@ const MyProfile = () => {
       ) : (
         <>
           <img
-            src={user.profilePic || "https://via.placeholder.com/150"}
+            src={user.profilePic || "/default-profile.png"}
             alt="Profile"
-            style={{ width: "150px", borderRadius: "50%" }}
+            className="profile-pic"
           />
+    <div className="labelProfile">
           <p><strong>Username:</strong> {user.username}</p>
           <p><strong>Followers:</strong> {user.followers?.length || 0}</p>
           <p><strong>Following:</strong> {user.following?.length || 0}</p>
@@ -149,6 +149,7 @@ const MyProfile = () => {
           <p><strong>Email:</strong> {user.email}</p>
           <p><strong>Bio:</strong> {user.bio || "No bio provided."}</p>
           <button onClick={() => setEditing(true)}>Edit Profile</button>
+    </div>
         </>
       )}
     </div>

@@ -6,6 +6,7 @@ import { getCurrentUser,
          getUserById,
          updateProfile,
          uploadProfilePicture,
+         searchUsers,
  } from "../controllers/user.controller.js";
 
 import { upload } from "../middlewares/upload.middleware.js";
@@ -18,10 +19,15 @@ router.post("/:id/follow", verifyJWT, followUser);
 
 router.post("/:id/unfollow", verifyJWT, unfollowUser);
 
+router.get("/search", verifyJWT, searchUsers);
+
 router.get("/:id", getUserById);
 
 router.put("/update", verifyJWT, updateProfile);
 
 router.post("/upload-profile-pic", verifyJWT, upload.single("file"), uploadProfilePicture);
+
+
+
 
 export default router;

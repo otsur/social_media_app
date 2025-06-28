@@ -11,7 +11,7 @@
   width: 30%;
   border-right: 1px solid #ccc;
   padding: 10px;
-  background-color: rgb(159, 179, 192);
+  background-color: rgb(150, 183, 193);
   color: rgb(53, 53, 53);
 }
 
@@ -49,7 +49,7 @@
   border: 1px solid #eadddd;
   padding: 10px;
   overflow-y: auto;
-  background-color: #fffffff3;
+  background-color: #f8f8f9f3;
   border-radius: 8px;
   margin-bottom: 10px;
 }

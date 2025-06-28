@@ -21,12 +21,14 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("Loading...");
+    setMessage("Registering...");
 
     try {
       const res = await axios.post(`${baseURL}/api/v1/auth/register`, formData);
       console.log("REGISTER SUCCESS:", res.data);
       setMessage("Registered successfully!");
+
+      if (onSuccess) onSuccess();
     } catch (err) {
       console.error("REGISTER ERROR:", err);
       setMessage(err.response?.data?.message || "Registration failed");

@@ -3,9 +3,31 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { socket } from "../utils/socket";
-
+import "../styles/Home.css";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+const timeAgo = (date) => {
+  const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+
+  let interval = Math.floor(seconds / 31536000);
+  if (interval >= 1) return `${interval} year${interval > 1 ? "s" : ""} ago`;
+
+  interval = Math.floor(seconds / 2592000);
+  if (interval >= 1) return `${interval} month${interval > 1 ? "s" : ""} ago`;
+
+  interval = Math.floor(seconds / 86400);
+  if (interval >= 1) return `${interval} day${interval > 1 ? "s" : ""} ago`;
+
+  interval = Math.floor(seconds / 3600);
+  if (interval >= 1) return `${interval} hour${interval > 1 ? "s" : ""} ago`;
+
+  interval = Math.floor(seconds / 60);
+  if (interval >= 1) return `${interval} minute${interval > 1 ? "s" : ""} ago`;
+
+  return "Just now";
+};
+
 
 const Home = () => {
   const [user, setUser] = useState(null);
@@ -15,6 +37,8 @@ const Home = () => {
   const [message, setMessage] = useState("Loading...");
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editedText, setEditedText] = useState("");
+  const [showComments, setShowComments] = useState({});
+
 
   const limit = 5;
 
@@ -56,6 +80,26 @@ const Home = () => {
   }
 };
 
+//------------------DELETE A POST-------------------
+const handleDeletePost = async (postId) => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+  if (!confirmDelete) return;
+
+  const token = localStorage.getItem("token");
+
+  try {
+    await axios.delete(`${baseURL}/api/v1/posts/${postId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    setPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
+  } catch (err) {
+    console.error("Error deleting post:", err);
+  }
+};
+
+
+//------------------DELETE A POST-------------------
 
 
   const handleCommentSubmit = async (e, postId) => {
@@ -130,6 +174,14 @@ const handleEditComment = async (e, postId, commentId) => {
   }
 };
 
+//toggle comment
+const toggleComments = (postId) => {
+  setShowComments((prev) => ({
+    ...prev,
+    [postId]: !prev[postId],
+  }));
+};
+
 // follow/unfollow
   const handleFollowToggle = async (targetUserId, isFollowing) => {
   const token = localStorage.getItem("token");
@@ -195,7 +247,7 @@ const fetchMorePosts = async () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      navigate("/login");
+      navigate("/auth");
       return;
     }
 
@@ -242,28 +294,19 @@ const fetchMorePosts = async () => {
   if (!user) return <p>Loading user data...</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="home-container">
+    <h2 className="home-heading">Home Feed</h2>
 
-      <h2>Home Feed</h2>
 
 {/* my profile ----------------------------------------- */}
-      <button
-        onClick={() => navigate("/me")}
-        style={{
-          padding: "6px 12px",
-          marginBottom: "10px",
-          backgroundColor: "#4CAF50",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer"
-        }}
-      >
-        My Profile
-      </button>
-      <Link to="/chat">
-        <button style={{ marginBottom: "20px" }}>💬 Go to Chat</button>
-      </Link>
+      {/* <Link to="/me" className="home-profile-link">
+        <img
+          src={user?.profilePic || "/default-profile.png"}
+          alt="Profile"
+          className="home-profile-pic"
+        />
+        <span>{user?.username}</span>
+      </Link> */}
 
 {/* my profile ----------------------------------------- */}
 
@@ -280,19 +323,35 @@ const fetchMorePosts = async () => {
       {posts.length === 0 && !message && <p>No posts yet.</p>}
 
       {posts.map((post) => (
-        <div key={String(post._id)} style={{ border: "1px solid #ccc", margin: "20px 0", padding: "10px" }}>
-          <p>
+        <div key={String(post._id)} className="post-card">
+          <p className="post-author">
             <strong>
-              <Link to={`/users/${post.author?._id}`} style={{ textDecoration: "none", color: "black" }}>
-                {post.author?.username || "Anonymous"}
+              <Link to={`/users/${post.author?._id}`} style={{ textDecoration: "none", color: "black" }} className="post-author-info">
+                
+                  <img
+                    src={post.author?.profilePic || "/default-profile.png"}
+                    alt="Profile"
+                  />
+                  <span>
+                  <strong>
+                    
+                      {post.author?.username || "Anonymous"}
+                    
+                  </strong>
+                  </span>
+                
               </Link>
             </strong>
           </p>
 
 
-          <p>{post.caption}</p>
+          <p className="post-caption">{post.caption}</p>
 
-         
+         <p style={{ fontSize: "12px", color: "gray" }}>
+          Posted {timeAgo(post.createdAt)}
+        </p>
+
+
 {/* neww may be removed----------------------------- */}
  
    
@@ -324,35 +383,42 @@ const fetchMorePosts = async () => {
   >
     {user.following?.includes(post.author._id) ? "Unfollow" : "Follow"}
   </button>
+  
 )}
-
-
-
+{post.author._id === user._id && (
+  <button onClick={() => handleDeletePost(post._id)} style={{ color: "red", marginTop: "5px" }}>
+    Delete Post
+  </button>
+)}
 
 
 {/* new maybe removed--------------------------------- */}
 
 
-
-
           {post.mediaType === "image" && (
-            <img src={post.mediaUrl} alt="post" style={{ maxWidth: "100%" }} />
+            <img src={post.mediaUrl} alt="post" className="post-media" />
           )}
           {post.mediaType === "video" && (
-            <video controls style={{ maxWidth: "100%" }}>
+            <video controls className="post-media">
               <source src={post.mediaUrl} />
               Your browser does not support the video tag.
             </video>
           )}
 
-          <p>❤️ {post.likes.length} Likes</p>
-            <p>💬 {post.comments.length} Comments</p>
-            <button onClick={() => handleLike(post._id)}>❤️ Like</button>
+          <p className="likeNum">❤️ {post.likes.length} Likes</p>
+            <p className="cmntNum">💬 {post.comments.length} Comments</p>
+            <div className="post-action">
+              <button onClick={() => handleLike(post._id)}>❤️ Like</button>
+            </div>
+
+            <button onClick={() => toggleComments(post._id)}>
+              {showComments[post._id] ? "Hide Comments" : "Show Comments"}
+            </button>
 
             {/* Comment Form */}
             <form
               onSubmit={(e) => handleCommentSubmit(e, post._id)}
-              style={{ marginTop: "10px" }}
+              className="comment-form"
             >
               <input
                 type="text"
@@ -364,10 +430,11 @@ const fetchMorePosts = async () => {
             </form>
 
             {/* Comment List */}
-           {post.comments.map((comment) => (
+           {showComments[post._id] && post.comments.map((comment) => (
   <div key={String(comment._id)} style={{ marginLeft: "10px", fontStyle: "italic", marginBottom: "10px" }}>
     
     {/* If this comment is being edited */}
+
     {editingCommentId === comment._id ? (
       <form onSubmit={(e) => handleEditComment(e, post._id, comment._id)}>
         <input
@@ -380,15 +447,12 @@ const fetchMorePosts = async () => {
       </form>
     ) : (
       <>
-        <div>
+        <div key={comment._id} className="comment">
           <strong>{comment.author?.username ?? "Anon"}</strong>: {comment.text}
-        </div>
-        <div style={{ fontSize: "12px", color: "gray" }}>
-          {new Date(comment.createdAt).toLocaleString()}
-        </div>
+          <small>{new Date(comment.createdAt).toLocaleString()}</small>
 
-        {/* Edit & Delete Buttons */}
-        {user && comment.author?._id === user._id && (
+          {/* Edit & Delete Buttons */}
+          {user && comment.author?._id === user._id && (
           <>
             <button
               onClick={() => {
@@ -408,6 +472,8 @@ const fetchMorePosts = async () => {
             </button>
           </>
         )}
+        </div>
+
       </>
     )}
   </div>

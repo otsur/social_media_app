@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import "../styles/Home.css";
+
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -76,13 +78,14 @@ const UserProfile = () => {
   if (!profile) return <p>Loading profile...</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="home-container">
       <img
-        src={profile.profilePic || "https://via.placeholder.com/150"}
+        src={profile.profilePic || "/default-profile.png"}
         alt="Profile"
-        style={{ width: "150px", borderRadius: "50%" }}
+        className="profile-pic"
       />
-      <h2>{profile.username}</h2>
+      <h2 className="home-heading">{profile.username}</h2>
+
       <p><strong>Followers:</strong> {profile.followers?.length || 0}</p>
       <p><strong>Following:</strong> {profile.following?.length || 0}</p>
 
@@ -104,16 +107,16 @@ const UserProfile = () => {
                 </button>
                 )}
 
-      <h3>Posts</h3>
+      <h3 className="home-heading">Posts</h3>
       {posts.length === 0 ? (
         <p>No posts yet</p>
       ) : (
         posts.map((post) => (
-          <div key={post._id} style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "10px" }}>
+          <div key={post._id} className="post-box">
             <p>{post.caption}</p>
-            {post.mediaType === "image" && <img src={post.mediaUrl} alt="" style={{ maxWidth: "100%" }} />}
+            {post.mediaType === "image" && <img src={post.mediaUrl} alt="" className="post-media" />}
             {post.mediaType === "video" && (
-              <video controls style={{ maxWidth: "100%" }}>
+              <video controls className="post-media">
                 <source src={post.mediaUrl} />
               </video>
             )}

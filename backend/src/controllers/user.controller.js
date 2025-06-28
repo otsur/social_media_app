@@ -15,6 +15,24 @@ export const getCurrentUser = asyncHandler(async(req, res) => {
   );
 });
 
+//----------  FOR SEARCHING USER
+export const searchUsers = asyncHandler(async (req, res) => {
+  const { query } = req.query;
+  // console.log("search query", query);
+  
+  if (!query) {
+    return res.status(400).json(new ApiResponse(400, [], "Query is required"));
+  }
+
+  const users = await User.find({
+    $or: [
+      { username: { $regex: query, $options: "i" } },
+      { email: { $regex: query, $options: "i" } },
+    ],
+  }).select("username email profilePic");
+
+  return res.status(200).json(new ApiResponse(200, users, "Users found"));
+});
 
 
 // GET USER BY ID

@@ -1,17 +1,15 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-const Login = () => {
+const Login = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const [message, setMessage] = useState("");
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -29,10 +27,12 @@ const Login = () => {
       console.log("LOGIN SUCCESS:", res.data);
 
       const token = res.data.data.token;
-      localStorage.setItem("token", token); // Save token for future requests
+      localStorage.setItem("token", token); // Save token
 
       setMessage("Login successful!");
-      navigate("/"); // Redirect to home
+
+      // ✅ Call onSuccess passed from AuthPage
+      if (onSuccess) onSuccess();
     } catch (err) {
       console.error("LOGIN ERROR:", err);
       setMessage(err.response?.data?.message || "Login failed");
@@ -40,9 +40,9 @@ const Login = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Login</h2>
+    <>
       <form onSubmit={handleSubmit}>
+        <h2>Login</h2>
         <input
           type="email"
           name="email"
@@ -60,7 +60,7 @@ const Login = () => {
         <button type="submit">Login</button>
       </form>
       <p>{message}</p>
-    </div>
+    </>
   );
 };
 
