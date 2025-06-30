@@ -344,10 +344,32 @@ const fetchMorePosts = async () => {
             </strong>
           </p>
 
-
+{user && post.author && post.author._id && user._id !== post.author._id && (
+  <button
+    onClick={() =>
+      handleFollowToggle(
+        post.author._id,
+        user.following?.includes(post.author._id)
+      )
+    }
+    style={{
+      padding: "2px 10px",
+      fontSize: "14px",
+      backgroundColor: user.following?.includes(post.author._id)
+        ? "lightcoral"
+        : "lightblue",
+      border: "none",
+      cursor: "pointer",
+      transform: "translate(120px,-42px)",
+    }}
+  >
+    {user.following?.includes(post.author._id) ? "Unfollow" : "Follow"}
+  </button>
+  
+)}
           <p className="post-caption">{post.caption}</p>
 
-         <p style={{ fontSize: "12px", color: "gray" }}>
+         <p style={{ fontSize: "12px", color: "gray", marginLeft: "5px", marginTop: "2px" }}>
           Posted {timeAgo(post.createdAt)}
         </p>
 
@@ -362,31 +384,9 @@ const fetchMorePosts = async () => {
 
 
 
-{user && post.author && post.author._id && user._id !== post.author._id && (
-  <button
-    onClick={() =>
-      handleFollowToggle(
-        post.author._id,
-        user.following?.includes(post.author._id)
-      )
-    }
-    style={{
-      marginBottom: "10px",
-      padding: "5px 10px",
-      fontSize: "14px",
-      backgroundColor: user.following?.includes(post.author._id)
-        ? "lightcoral"
-        : "lightblue",
-      border: "none",
-      cursor: "pointer"
-    }}
-  >
-    {user.following?.includes(post.author._id) ? "Unfollow" : "Follow"}
-  </button>
-  
-)}
+
 {post.author._id === user._id && (
-  <button onClick={() => handleDeletePost(post._id)} style={{ color: "red", marginTop: "5px" }}>
+  <button onClick={() => handleDeletePost(post._id)} className="deleteBtn">
     Delete Post
   </button>
 )}
@@ -408,12 +408,9 @@ const fetchMorePosts = async () => {
           <p className="likeNum">❤️ {post.likes.length} Likes</p>
             <p className="cmntNum">💬 {post.comments.length} Comments</p>
             <div className="post-action">
-              <button onClick={() => handleLike(post._id)}>❤️ Like</button>
+              <button onClick={() => handleLike(post._id)} className="likeBtn">❤️ Like</button>
             </div>
 
-            <button onClick={() => toggleComments(post._id)}>
-              {showComments[post._id] ? "Hide Comments" : "Show Comments"}
-            </button>
 
             {/* Comment Form */}
             <form
@@ -426,12 +423,14 @@ const fetchMorePosts = async () => {
                 placeholder="Write a comment..."
                 required
               />
-              <button type="submit">💬 Comment</button>
+              <button type="submit" className="cmntBtn">💬 Comment</button>
             </form>
-
+            <button onClick={() => toggleComments(post._id)} className="showCmntBtn">
+              {showComments[post._id] ? "Hide Comments" : "Show Comments"}
+            </button>
             {/* Comment List */}
            {showComments[post._id] && post.comments.map((comment) => (
-  <div key={String(comment._id)} style={{ marginLeft: "10px", fontStyle: "italic", marginBottom: "10px" }}>
+  <div key={String(comment._id)} style={{ marginLeft: "10px", fontStyle: "italic", marginBottom: "10px" }} className="cmntInput">
     
     {/* If this comment is being edited */}
 

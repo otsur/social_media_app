@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import "../styles/CreatePost.css";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
@@ -60,12 +60,13 @@ const CreatePost = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="create-post-container">
       <h2>Create Post</h2>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="create-post-form">
         <input
           type="text"
           placeholder="Caption"
+          className="create-post-input"
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
           required
@@ -73,7 +74,7 @@ const CreatePost = () => {
 
         <input type="file" onChange={handleFileChange} required /><br /><br />
 
-        <button type="submit">Post</button>
+        <button type="submit" className="create-post-btn">Post</button>
       </form>
       <p>{message}</p>
     </div>

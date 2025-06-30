@@ -12,7 +12,8 @@ import Navbar from './pages/Navbar';
 import AuthPage from './pages/AuthPage';
 import {useLocation} from 'react-router-dom';
 import SearchUser from "./pages/SearchUser";
-
+import "./styles/Navbar.css"
+import "./styles/CreatePost.css"
 
 const AppRoutes = () => {
   const location = useLocation();

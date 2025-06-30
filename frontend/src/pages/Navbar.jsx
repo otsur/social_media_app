@@ -73,6 +73,7 @@ const Navbar = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
+        <label htmlFor="">Search</label>
       </form>
       {notFound && (
         <div style={{
@@ -90,9 +91,8 @@ const Navbar = () => {
 
       <div className="nav-center">
         <Link to="/" className="nav-link">Home</Link>
-        <Link to="/me" className="nav-link">My Profile</Link>
         <Link to="/chat" className="nav-link">Messages</Link>
-        <Link to="/create-post">Create Post</Link>
+        <Link to="/create-post" className="nav-create-post">Create Post</Link>
         </div>
         <div className="nav-right">
           {user && (

@@ -1,8 +1,7 @@
 /* Chat.css */
 
 .chat-container {
-  display: flex;
-  height: 100vh;
+  position: sticky;
   font-family: sans-serif;
 }
 

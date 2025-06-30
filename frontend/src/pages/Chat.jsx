@@ -239,28 +239,15 @@ useEffect(() => {
 
 <div className="char-container">
 {/* ------------ */}
-<button
-  onClick={() => navigate("/")}
-  style={{
-    margin: "10px 20px",
-    padding: "5px 10px",
-    backgroundColor: "#A9A9A9",
-    color: "white",
-    border: "none",
-    borderRadius: "30px",
-    cursor: "pointer",
-    fontWeight: "bold",
-  }}
->
-   Back
-</button>
 
 {/* ----------- */}
 
 
   <div style={{ 
     display: "flex",
-    height: "100vh",
+    position: "sticky",
+    height: "90vh",
+    width: "1200px",
     fontFamily: "sans-serif",
     backgroundColor: "#0000"
    }}>
@@ -303,8 +290,9 @@ useEffect(() => {
   <div style={{
     fontWeight: "600",
     fontSize: "18px",
+    maxWidth: "1200px",
     marginBottom: "10px",
-    color: "#ffff"
+    color: "#000"
   }}>
     {selectedUser ? `Chatting with ${selectedUser.username}` : "Select a user to start chatting"}
   </div>
@@ -320,7 +308,10 @@ useEffect(() => {
           key={idx}
           style={{
             textAlign: msg.fromSelf ? "right" : "left",
+            marginLeft: msg.fromSelf ? "55px" : "0",
             marginBottom: "8px",
+            maxWidth: "700px",
+            wordWrap:"break-word",
           }}
         >
           <div
